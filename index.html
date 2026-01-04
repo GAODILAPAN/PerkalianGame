@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Racing Math - Perkalian</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    box-sizing:border-box;
+}
+body{
+    margin:0;
+    font-family:"Roboto", cursive;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:url("background.jpg") center/cover no-repeat fixed;
+}
+
+.container{
+    background:rgba(255,255,255,0.92);
+    width:90%;
+    max-width:1200px;
+    border-radius:30px;
+    padding:20px;
+    text-align:center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+    transition: 0.3s;
+
+}
+
+/* HOME */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+.btn{
+    background:#ff9800;
+    color:#fff;
+    border:none;
+    padding:15px;
+    font-size:20px;
+    border-radius:15px;
+    cursor:pointer;
+}
+.btn:hover{background:#f57c00;}
+
+
+/* GAME */
+/* GAME */
+.question{
+    font-size:38px;
+    margin:20px 0 25px;
+    font-weight:700;
+    color:#333;
+    animation: fadeUp 0.4s ease;
+}
+
+/* Animasi soal muncul */
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* BUTTON JAWABAN */
+.option{
+    background:linear-gradient(180deg,#66bb6a,#43a047);
+    color:#fff;
+    font-size:24px;
+    padding:18px;
+    border-radius:20px;
+    border:none;
+    cursor:pointer;
+
+    box-shadow:
+        0 8px 0 #2e7d32,
+        0 12px 20px rgba(0,0,0,0.18);
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.2s ease;
+}
+.options{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:18px;
+    margin:25px 0;
+}
+
+/* Hover (mouse) */
+.option:hover{
+    background:linear-gradient(180deg,#6fdc7a,#4caf50);
+    transform:translateY(-2px);
+}
+
+/* Active (klik / tap) */
+.option:active{
+    transform:translateY(6px);
+    box-shadow:
+        0 3px 0 #2e7d32,
+        0 6px 10px rgba(0,0,0,0.15);
+}
+
+/* Benar & Salah */
+.option.correct{
+    background:linear-gradient(180deg,#4caf50,#2e7d32);
+    box-shadow:0 6px 0 #1b5e20;
+    animation: pop 0.3s ease;
+}
+
+.option.wrong{
+    background:linear-gradient(180deg,#ef5350,#e53935);
+    box-shadow:0 6px 0 #b71c1c;
+    animation: shake 0.35s;
+}
+
+/* Animasi benar */
+@keyframes pop{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.1)}
+    100%{transform:scale(1)}
+}
+
+/* Animasi salah */
+@keyframes shake{
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-5px)}
+    50%{transform:translateX(5px)}
+    75%{transform:translateX(-5px)}
+    100%{transform:translateX(0)}
+}
+
+/* SCORE */
+.score{
+    margin-top:12px;
+    font-size:18px;
+    color:#444;
+}
+
+/* UTIL */
+.hide{
+    display:none;
+}
+
+/* RACE BOX */
+.race-box{
+    background:#f2f2f2;
+    border-radius:18px;
+    padding:10px;
+    margin-bottom:15px;
+}
+
+/* TIMER + TRACK JADI SATU */
+.timer-track{
+    position:relative;
+    height:28px;
+    background:linear-gradient(
+        to right,
+        #e0e0e0 0%,
+        #e0e0e0 100%
+    );
+    border-radius:14px;
+    overflow:hidden;
+}
+
+/* TIMER ISI */
+.timer-fill{
+    position:absolute;
+    left:0;
+    top:0;
+    height:100%;
+    width:100%;
+    background:#4caf50;
+    transition:width 1s linear, background 0.4s;
+}
+
+.timer-track::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.15) 0 10px,
+        transparent 10px 20px
+      );
+    pointer-events:none;
+}
+
+/* MOBIL */
+.car{
+    position:absolute;
+    top:-6px;          /* NAIK SEDIKIT DI ATAS BAR */
+    left:0;
+    font-size:26px;
+    transition:left 1s linear;
+    z-index:2;
+    transform: scaleX(-1);
+}
+
+/* GARIS FINISH */
+.finish{
+    position:absolute;
+    right:6px;
+    top:0;
+    width:5px;
+    height:100%;
+    background:#e53935;
+    border-radius:3px;
+}
+
+/* MASKOT MOBIL */
+.mascot{
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+@keyframes drive{
+    0%{transform:translateX(-300px);}
+    50%{transform:translateX(300px);}
+    100%{transform:translateX(-300px);}
+}
+
+/* SUBTITLE */
+.subtitle{
+    font-size:20px;
+    margin:1px 0;
+    color:#444;
+}
+
+.hint{
+    font-size:19px;
+    color:#530808;
+    margin-bottom:0px;
+    animation: blink 2s infinite;
+}
+
+@keyframes blink{
+    0%,100%{opacity:1;}
+    60%{opacity:0.5;}
+}
+
+/* HOME RACE */
+.home-race{
+    width:100%;
+}
+
+/* START TRACK */
+.start-track{
+    position:relative;
+    height:70px;
+    background:#e0e0e0;
+    border-radius:40px;
+    margin-bottom:15px;
+    overflow:hidden;
+}
+
+.start-line{
+    position:absolute;
+    left:15px;
+    top:0;
+    height:100%;
+    width:70px;
+    background:black;
+    color:white;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:30px;
+}
+
+.home-car{
+    position:absolute;
+    right:20px;
+    top:10px;
+    font-size:42px;
+    animation: idleCar 1.5s ease-in-out infinite;
+}
+
+@keyframes idleCar{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-5px);}
+}
+
+/* TITLE */
+.game-title{
+    font-size:38px;
+    margin:10px 0 5px;
+}
+
+.game-subtitle{
+    font-size:18px;
+    margin-bottom:20px;
+    color:#555;
+}
+
+/* GRID LEVEL */
+.grid-level{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+    margin-bottom:20px;
+    position: relative;
+    z-index: 10;
+}
+
+/* LEVEL BUTTON */
+.level-btn{
+    background:#fa7900;
+    color:rgb(255, 255, 255);
+    font-size:28px;
+    padding:22px 0;
+    border:none;
+    border-radius:20px;
+    cursor:pointer;
+    transition:0.2s;
+    position: relative;
+    z-index: 10;
+}
+
+.level-btn:hover{
+    transform:scale(1.08);
+    background:#e75f05;
+}
+
+.option.correct{
+    background:#2ecc71 !important;
+    animation: pop 0.3s ease;
+}
+.option.wrong{
+    background:#e74c3c !important;
+    animation: shake 0.3s;
+}
+
+@keyframes pop{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.1)}
+    100%{transform:scale(1)}
+}
+@keyframes shake{
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-5px)}
+    50%{transform:translateX(5px)}
+    75%{transform:translateX(-5px)}
+    100%{transform:translateX(0)}
+}
+.car.correct{
+    animation: jump 0.4s;
+}
+@keyframes jump{
+    0%{transform:translateY(0) scaleX(-1)}
+    50%{transform:translateY(-10px) scaleX(-1)}
+    100%{transform:translateY(0) scaleX(-1)}
+}
+.timer-track.danger{
+    animation: blinkTrack 0.5s infinite;
+}
+@keyframes blinkTrack{
+    0%{background:#f44336}
+    50%{background:#ddd}
+    100%{background:#f44336}
+}
+
+.question{
+    animation: fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+#result h1, #result h2{
+    animation: scaleIn 0.5s ease;
+}
+
+@keyframes scaleIn{
+    from{
+        transform:scale(0.8);
+        opacity:0;
+    }
+    to{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+.confetti{
+    position:fixed;
+    top:-10px;
+    font-size:20px;
+    animation: fall 3s linear forwards;
+}
+
+@keyframes fall{
+    to{
+        transform:translateY(110vh) rotate(360deg);
+        opacity:0;
+    }
+}
+
+.question-box{
+    background:rgba(255,255,255,0.6);
+    border-radius:20px;
+    padding:20px;
+    margin:1px auto 2px;
+    max-width:500px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.question{
+    font-size:50px;
+    font-weight:800;
+    letter-spacing:1px;
+}
+
+.lives-bar{
+    background:#fff3f3;
+    border-radius:10px;
+    padding:8px 12px;
+    display:inline-block;
+    margin-bottom:0px;
+    font-size:20px;
+}
+
+.mission{
+    font-size:18px;
+    font-weight:600;
+    color:#333;
+    margin:10px 0 15px;
+}
+
+.options-box{
+    background:rgba(255,255,255,0.45);
+    padding:0px;
+    border-radius:22px;
+    max-width:520px;
+    margin:0 auto 10px;
+}
+
+@media (max-width:600px){
+    .game-header{
+        flex-direction:column;
+        align-items:center;
+    }
+}
+
+</style>
+
+
+
+
+
+
+
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- HOME -->
+<div id="home">
+    <!-- MASKOT -->
+    <div class="mascot">
+    <h1>🏎️</h1>
+    </div>
+
+    <h1>🏁 Racing Math 🏁</h1>
+    <p class="subtitle">Siap balapan sambil belajar perkalian?</p>
+    <p class="hint">👇 Pilih angka perkalian di bawah ini 👇</p>
+    <!-- GRID LEVEL -->
+    <div class="grid-level">
+        <button class="level-btn" onclick="startGame(1)">Arena 1</button>
+        <button class="level-btn" onclick="startGame(2)">Arena 2</button>
+        <button class="level-btn" onclick="startGame(3)">Arena 3</button>
+        <button class="level-btn" onclick="startGame(4)">Arena 4</button>
+        <button class="level-btn" onclick="startGame(5)">Arena 5</button>
+
+        <button class="level-btn" onclick="startGame(6)">Arena 6</button>
+        <button class="level-btn" onclick="startGame(7)">Arena 7</button>
+        <button class="level-btn" onclick="startGame(8)">Arena 8</button>
+        <button class="level-btn" onclick="startGame(9)">Arena 9</button>
+        <button class="level-btn" onclick="startGame(10)">Arena 10</button>
+    </div>
+
+    <p class="race-info">🏁 20 lap • ⏱️ 20 detik • ⭐ Skor max 100</p>
+
+    </div>
+    <p style="margin-top:15px;font-size:14px;color:#555;">
+    GAO DILAPAN
+    </p>
+
+<!-- GAME -->
+<div id="game" class="hide">
+    <h1 id="title"></h1>
+    <div class="lives-bar">
+    <span id="lives">❤️ ❤️ ❤️ ❤️ ❤️</span>
+    </div>
+
+     <!-- RACE + TIMER BOX -->
+    <div class="race-box">
+        <div class="timer-track">
+            <div class="timer-fill" id="timerFill"></div>
+            <div class="car" id="car">🏎️</div>
+            <div class="finish"></div>
+        </div>
+    </div>
+    <p id="missionText" class="mission"></p>
+
+    <div class="question-box">
+    <div class="question" id="question"></div>
+    </div>
+
+    <div class="options-box">
+    <div class="options" id="options"></div>
+    </div>
+
+    <div class="score">
+        Soal <span id="count">1</span>/20 |
+        Skor: <span id="score">0</span>
+    </div>
+
+    <!-- CONTROL -->
+    <div class="control-box">
+        <button class="btn btn-danger" onclick="showResult()">🔚 Selesaikan</button>
+        <button class="btn btn-home" onclick="goHome()">🏠 Beranda</button>
+    </div>
+
+</div>
+
+<!-- RESULT -->
+<div id="result" class="hide">
+    <h1>🏆 Hasil Akhir</h1>
+    <h2 id="finalScore"></h2>
+    <button class="btn" onclick="goHome()">🏠 Kembali ke Beranda</button>
+</div>
+
+</div>
+
+<!-- SOUND -->
+<audio id="unlockSound" src="unlock.mp3"></audio>
+<audio id="correctSound" src="correct.mp3"></audio>
+<audio id="wrongSound" src="incorrect.mp3"></audio>
+<audio id="winSound" src="win.mp3"></audio>
+<audio id="music" src="music.mp3" loop></audio>
+
+
+
+
+
+
+
+<script>
+/* ======================
+   STATE GAME
+====================== */
+let table = 1;
+let questionNumber = 0;
+let score = 0;
+let correctAnswer = 0;
+
+const TOTAL_QUESTIONS = 20;
+
+/* TIMER */
+const MAX_TIME = 20;
+let timeLeft = MAX_TIME;
+let timerInterval;
+
+/* LIVES */
+let lives = 5;
+
+/* AUDIO */
+let audioReady = false;
+let bgmStarted = false;
+
+/* ======================
+   AUDIO
+====================== */
+function playSound(id){
+    if(!audioReady) return;
+    const audio = document.getElementById(id);
+    if(audio){
+        audio.currentTime = 0;
+        audio.play().catch(()=>{});
+    }
+}
+
+function startBGM(){
+    const bgm = document.getElementById("music");
+    if(bgm && !bgmStarted){
+        bgm.volume = 0.25;
+        bgm.play().then(()=> bgmStarted = true).catch(()=>{});
+    }
+}
+
+function stopBGM(){
+    const bgm = document.getElementById("music");
+    if(bgm){
+        bgm.pause();
+        bgm.currentTime = 0;
+        bgmStarted = false;
+    }
+}
+
+/* ======================
+   START GAME
+====================== */
+function startGame(num){
+    audioReady = true;
+    startBGM();
+
+    table = num;
+    questionNumber = 0;
+    score = 0;
+    lives = 5;
+
+    updateLives();
+
+    document.getElementById("home").classList.add("hide");
+    document.getElementById("result").classList.add("hide");
+    document.getElementById("game").classList.remove("hide");
+    document.getElementById("title").innerText = `🚗 Perkalian ${table}`;
+
+    nextQuestion();
+}
+
+/* ======================
+   QUESTION
+====================== */
+function nextQuestion(){
+    clearInterval(timerInterval);
+
+    if(questionNumber >= TOTAL_QUESTIONS){
+        showResult();
+        return;
+    }
+
+    questionNumber++;
+    document.getElementById("count").innerText = questionNumber;
+    document.getElementById("score").innerText = score;
+
+    const num = Math.floor(Math.random() * 10) + 1;
+    correctAnswer = table * num;
+    document.getElementById("question").innerText = `${num} × ${table} = ?`;
+
+    const answers = [correctAnswer];
+    while(answers.length < 4){
+        const w = correctAnswer + Math.floor(Math.random() * 10) - 5;
+        if(w > 0 && !answers.includes(w)) answers.push(w);
+    }
+
+    answers.sort(() => Math.random() - 0.5);
+
+    const opt = document.getElementById("options");
+    opt.innerHTML = "";
+    answers.forEach(a=>{
+        const b = document.createElement("button");
+        b.className = "option";
+        b.innerText = a;
+        b.onclick = () => checkAnswer(a);
+        opt.appendChild(b);
+    });
+
+    document.getElementById("missionText").innerText =
+    `🏁 Misi: ${questionNumber} / 20 soal selesai`;
+
+    startTimer();
+}
+
+/* ======================
+   TIMER
+====================== */
+function startTimer(){
+    timeLeft = MAX_TIME;
+    updateTimerUI();
+
+    timerInterval = setInterval(()=>{
+        timeLeft--;
+        updateTimerUI();
+
+        if(timeLeft <= 0){
+            clearInterval(timerInterval);
+            loseLife();
+            nextQuestion();
+        }
+    },1000);
+}
+
+function updateTimerUI(){
+    const fill = document.getElementById("timerFill");
+    const car = document.getElementById("car");
+    const track = document.querySelector(".timer-track");
+
+    const percent = (1 - timeLeft / MAX_TIME) * 100;
+    fill.style.width = percent + "%";
+    car.style.left = `calc(${percent}% - 12px)`;
+
+    track.classList.toggle("danger", timeLeft <= 3);
+}
+
+/* ======================
+   ANSWER
+====================== */
+function checkAnswer(ans){
+    clearInterval(timerInterval);
+
+    document.querySelectorAll(".option").forEach(b=>{
+        const val = Number(b.innerText);
+        b.disabled = true;
+        if(val === correctAnswer) b.classList.add("correct");
+        else if(val === ans) b.classList.add("wrong");
+    });
+
+    if(ans === correctAnswer){
+        score += 5;
+        playSound("correctSound");
+        animateCar();
+    }else{
+        playSound("wrongSound");
+        loseLife();
+    }
+
+    setTimeout(nextQuestion, 700);
+}
+
+/* ======================
+   LIVES & STORY
+====================== */
+function loseLife(){
+    lives--;
+    updateLives();
+
+    if(lives <= 0){
+        alert("😢 Game Over!");
+        showResult();
+    }
+}
+
+function updateLives(){
+    document.getElementById("lives").innerText = "❤️ ".repeat(lives);
+}
+
+function animateCar(){
+    const car = document.getElementById("car");
+    car.classList.add("correct");
+    setTimeout(()=> car.classList.remove("correct"), 400);
+}
+
+/* ======================
+   RESULT & NAV
+====================== */
+function showResult(){
+    clearInterval(timerInterval);
+    stopBGM();
+    playSound("winSound");
+
+    document.getElementById("game").classList.add("hide");
+    document.getElementById("result").classList.remove("hide");
+    document.getElementById("finalScore").innerText = `Skor Kamu: ${score}`;
+
+    launchConfetti();
+}
+
+function launchConfetti(){
+    for(let i=0;i<15;i++){
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.innerText = "🎉";
+        c.style.left = Math.random()*100 + "vw";
+        c.style.animationDelay = Math.random() + "s";
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(),3000);
+    }
+}
+
+function goHome(){
+    clearInterval(timerInterval);
+    stopBGM();
+    document.getElementById("game").classList.add("hide");
+    document.getElementById("result").classList.add("hide");
+    document.getElementById("home").classList.remove("hide");
+}
+</script>
+
+
+
+</body>
+</html>
